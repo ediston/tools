@@ -3,6 +3,13 @@
 #include <fstream>
 using namespace std;
 
+string replaceCommaByPlus(string s){
+    for(int i=0; i<s.length(); i++)
+        if(s[i] == ',') s[i] = '+';
+
+    return s;
+}
+
 int findPosFromBegin(string s, string find){
     for(int i=0; i<s.length(); i++){
         if(s[i]!=find[0]) continue;
@@ -39,7 +46,7 @@ string getProblemType(string s){
     int pos = findPosFromEnd(s, "</td><td>");
     s = s.substr(0, pos);
     pos = findPosFromEnd(s, ">");
-    s = s.substr(pos+1,  s.length()-pos);
+    s = replaceCommaByPlus(s.substr(pos+1,  s.length()-pos));
     return s;
 }
 // get problem name
@@ -48,6 +55,15 @@ string getProblemName(string s){
     s = s.substr(0, pos);
     pos = findPosFromEnd(s, ">");
     return s.substr(pos+1,  s.length()-pos);
+}
+// get problem type
+string getRoundName(string s){
+    int pos =  findPosFromBegin(s, "q(");
+    s = s.substr(pos);
+    pos =  findPosFromBegin(s, ">");
+    s = s.substr(pos+1);
+    pos =  findPosFromBegin(s, "<");
+    return s.substr(0, pos);
 }
 // get problem type
 string getProblemLevel(string s){
@@ -94,20 +110,22 @@ int main(int argc, char* argv[]){
     string rowSepStr = "</td></tr><tr>";
     ifstream infile (argv[1]);
     ofstream outfile (argv[2]);
+    outfile  << "DoneDate,Level,RoundName,Name,Link,RoundLink,SolutionLink,Type"<< endl;
     if (infile.is_open())
     {
         while ( getline (infile,s) )
         {
-            cout << s << endl;
             pos = s.find(rowSepStr);
             while (pos!=-1) {
                 line = s.substr(0, pos);
-                outfile    << getProblemLevel(line) << ","
-                << getProblemType(line) << ","
+                outfile  << "\t,"
+                << getProblemLevel(line) << ","
+                << getRoundName(line) << ","
                 << getProblemName(line) << ","
                 << getProblemLink(line) << ","
                 << getProblemRoundLink(line)   << ","
-                << getProblemSolutionLink(line) << endl;
+                << getProblemSolutionLink(line)<< ","
+                << getProblemType(line)  << endl;
                 s = s.substr(pos + rowSepStr.length());
                 pos = s.find(rowSepStr);
             }
